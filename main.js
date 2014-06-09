@@ -17,7 +17,7 @@ define(function (/* require, exports, module */) {
         Editor             = brackets.getModule('editor/Editor').Editor,
         Menus              = brackets.getModule('command/Menus'),
         PreferencesManager = brackets.getModule('preferences/PreferencesManager'),
-        PREFERENCES_KEY    = 'brackets-wsSanitize',
+        PREFERENCES_KEY    = 'brackets-wsSanitizer',
         prefs              = PreferencesManager.getExtensionPrefs(PREFERENCES_KEY);
 
     // Set default value
