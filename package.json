@@ -1,0 +1,15 @@
+{
+    "title": "White Space Sanitizer",
+    "name": "ws-sanitizer",
+    "description": "Cleanup white spaces or tabs using Brackets settings",
+    "version": "0.0.1",
+    "author": "Miguel Castillo <mahchagnu@gmail.com>",
+    "homepage": "https://github.com/MiguelCastillo/Brackets-wsSanitiner",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/MiguelCastillo/Brackets-wsSanitiner.git"
+    },
+    "engines": {
+        "brackets": ">=0.38.0"
+    }
+}
