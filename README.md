@@ -18,6 +18,12 @@ Conversely, if you have Brackets configured to use tabs, then all leading white 
 
 When does all this work happen? Upon saving file changes.
 
+How to...
+=======
+
+Enable/Disable:
+![enable/disable ss](https://raw.githubusercontent.com/MiguelCastillo/Brackets-wsSanitizer/master/screenshot.png)
+
 Credits
 =======
 
