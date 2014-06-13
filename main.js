@@ -7,11 +7,10 @@
  */
 
 
-
 define(function (/* require, exports, module */) {
     'use strict';
 
-    var CommandManager   = brackets.getModule('command/CommandManager'),
+    var CommandManager     = brackets.getModule('command/CommandManager'),
         Commands           = brackets.getModule('command/Commands'),
         DocumentManager    = brackets.getModule('document/DocumentManager'),
         Editor             = brackets.getModule('editor/Editor').Editor,
@@ -48,7 +47,7 @@ define(function (/* require, exports, module */) {
         doc.batchOperation(function () {
             var line, pattern, match;
             var lineIndex = 0,
-                wsPattern = getWhiteSpaceReplacePattern(Editor);
+                wsPattern = getReplacePattern(Editor);
 
             while ((line = doc.getLine(lineIndex)) !== undefined) {
                 //trim trailing whitespaces
@@ -62,10 +61,10 @@ define(function (/* require, exports, module */) {
                     );
                 }
 
-                match = wsPattern.normalize(line);
-                if ( match.replace ) {
+                match = wsPattern.sanitizeLine(line);
+                if ( match.replaceWith ) {
                     doc.replaceRange(
-                        match.replace,
+                        match.replaceWith,
                         {line: lineIndex, ch: match.start},
                         {line: lineIndex, ch: match.end}
                     );
@@ -88,35 +87,38 @@ define(function (/* require, exports, module */) {
     }
 
 
-    function getWhiteSpaceReplacePattern(editor) {
-        return editor.getUseTabChar() ? {
+    function getReplacePattern(editor) {
+        var pattern = editor.getUseTabChar() ? {
             units: editor.getTabSize(),
-            normalize: function(line) {
-                var regMatch = /^[ ]+/g.exec(line);
-                var matches  = (regMatch || [''])[0];
-                var indent   = Math.round(matches.length / this.units);
-                var replace  = new Array(indent + 1).join('\t');
-
-                return {
-                    replace: replace,
-                    start: 0,
-                    end: matches.length
-                };
+            matchPattern: /^[ ]+/g,
+            replaceWith: '\t',
+            getIndent: function(length) {
+                return Math.round(length / pattern.units);
             }
         }: {
             units: editor.getSpaceUnits(),
-            normalize: function(line) {
-                var regMatch = /^[\t]+/g.exec(line);
-                var matches  = (regMatch || [''])[0];
-                var indent   = matches.length * this.units;
-                var replace  = new Array(indent + 1).join(' ');
-
-                return {
-                    replace: replace,
-                    start: 0,
-                    end: matches.length
-                };
+            matchPattern: /^[\t]+/g,
+            replaceWith: ' ',
+            getIndent: function(length) {
+                return length * pattern.units;
             }
+        };
+
+
+        function sanitizeLine(line) {
+            var regMatch = line.match(pattern.matchPattern);
+            var matches  = (regMatch || [''])[0];
+            var indent   = pattern.getIndent(matches.length);
+
+            return {
+                replaceWith: new Array(indent + 1).join(pattern.replaceWith),
+                start: 0,
+                end: matches.length
+            };
+        }
+
+        return {
+            sanitizeLine: sanitizeLine
         };
     }
 
