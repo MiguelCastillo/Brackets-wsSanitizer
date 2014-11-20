@@ -13,11 +13,15 @@ define(function (/* require, exports, module */) {
     var CommandManager     = brackets.getModule('command/CommandManager'),
         Commands           = brackets.getModule('command/Commands'),
         DocumentManager    = brackets.getModule('document/DocumentManager'),
-        Editor             = brackets.getModule('editor/Editor').Editor,
         Menus              = brackets.getModule('command/Menus'),
         PreferencesManager = brackets.getModule('preferences/PreferencesManager'),
         PREFERENCES_KEY    = 'brackets-wsSanitizer',
         prefs              = PreferencesManager.getExtensionPrefs(PREFERENCES_KEY);
+
+    var SPACE_UNITS  = "spaceUnits",
+        TAB_SIZE     = "tabSize",
+        USE_TAB_CHAR = "useTabChar";
+
 
     // Set default value
     prefs.definePreference("enabled", "boolean", "true");
@@ -47,7 +51,7 @@ define(function (/* require, exports, module */) {
         doc.batchOperation(function () {
             var line, pattern, match;
             var lineIndex = 0,
-                wsPattern = getReplacePattern(Editor);
+                wsPattern = getReplacePattern(doc);
 
             while ((line = doc.getLine(lineIndex)) !== undefined) {
                 //trim trailing whitespaces
@@ -87,16 +91,21 @@ define(function (/* require, exports, module */) {
     }
 
 
-    function getReplacePattern(editor) {
-        var pattern = editor.getUseTabChar() ? {
-            units: editor.getTabSize(),
+    function getReplacePattern(doc) {
+        var preferencesContext = doc.file.fullPath;
+        var useTabChar = PreferencesManager.get(USE_TAB_CHAR, preferencesContext);
+        var tabSize    = PreferencesManager.get(TAB_SIZE,     preferencesContext);
+        var spaceUnit  = PreferencesManager.get(SPACE_UNITS,  preferencesContext);
+
+        var pattern = useTabChar ? {
+            units: tabSize,
             matchPattern: /^[ ]+/g,
             replaceWith: '\t',
             getIndent: function(length) {
                 return Math.round(length / pattern.units);
             }
         }: {
-            units: editor.getSpaceUnits(),
+            units: spaceUnit,
             matchPattern: /^[\t]+/g,
             replaceWith: ' ',
             getIndent: function(length) {
