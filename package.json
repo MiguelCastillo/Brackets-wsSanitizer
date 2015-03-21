@@ -1,15 +1,27 @@
 {
-    "title": "White Space Sanitizer",
-    "name": "ws-sanitizer",
-    "description": "Bring sanity to your white spaces and tabs leveraging Brackets settings",
-    "version": "0.0.3",
-    "author": "Miguel Castillo <manchagnu@gmail.com>",
-    "homepage": "https://github.com/MiguelCastillo/Brackets-wsSanitizer",
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/MiguelCastillo/Brackets-wsSanitizer.git"
-    },
-    "engines": {
-        "brackets": ">=0.38.0"
-    }
+  "title": "White Space Sanitizer",
+  "name": "ws-sanitizer",
+  "description": "Bring sanity to your white spaces and tabs leveraging Brackets settings",
+  "version": "0.0.3",
+  "author": "Miguel Castillo <manchagnu@gmail.com>",
+  "homepage": "https://github.com/MiguelCastillo/Brackets-wsSanitizer",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/MiguelCastillo/Brackets-wsSanitizer.git"
+  },
+  "engines": {
+    "brackets": ">=0.38.0"
+  },
+  "devDependencies": {
+    "bit-imports": "~0.1.5",
+    "chai": "~2.1.2",
+    "mocha": "~2.2.1",
+    "grunt": "~0.4.5",
+    "jshint-stylish": "~1.0.1",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-contrib-jshint": "~0.11.1",
+    "grunt-contrib-connect": "~0.9.0",
+    "grunt-mocha": "~0.4.12",
+    "grunt-concurrent": "~1.0.0"
+  }
 }
