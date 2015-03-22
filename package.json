@@ -2,15 +2,16 @@
   "title": "White Space Sanitizer",
   "name": "ws-sanitizer",
   "description": "Bring sanity to your white spaces and tabs leveraging Brackets settings",
-  "version": "0.0.3",
+  "version": "1.0.0",
   "author": "Miguel Castillo <manchagnu@gmail.com>",
   "homepage": "https://github.com/MiguelCastillo/Brackets-wsSanitizer",
+  "keywords": ["indentation", "white space", "tabs"],
   "repository": {
     "type": "git",
     "url": "git://github.com/MiguelCastillo/Brackets-wsSanitizer.git"
   },
   "engines": {
-    "brackets": ">=0.38.0"
+    "brackets": ">=0.42.0"
   },
   "devDependencies": {
     "bit-imports": "~0.1.5",
