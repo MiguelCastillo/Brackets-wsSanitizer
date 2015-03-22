@@ -34,23 +34,31 @@ define(function (require /*, exports, module*/) {
     prefs.set('enabled', !command.getChecked());
   }
 
+  var lastEnabled;
   function checkEnabled() {
     var enabled = prefs.get('enabled');
-    command.setChecked(enabled);
-    DocumentManager[enabled ? 'on' : 'off']('documentSaved', runSanitizer);
+    if (enabled !== lastEnabled) {
+      lastEnabled = enabled;
+      command.setChecked(enabled);
+      DocumentManager[enabled ? 'on' : 'off']('documentSaved', runSanitizer);
+    }
   }
 
   function runSanitizer(evt, doc) {
-    if (prefs.get('enabled')) {
-      doc.batchOperation(function () {
-        sanitize(doc);
-
-        // We must publish the FILE_SAVE event in the same cycle as sanitization
-        // completes to avoid incorrectly saving the document before it is sanitized,
-        // which throws Brackets into an infinite saving loop.
-        CommandManager.execute(Commands.FILE_SAVE, {doc: doc});
-      });
+    if (doc.__saving) {
+      return;
     }
+
+    doc.__saving = true;
+    doc.batchOperation(function () {
+      sanitize(doc);
+
+      setTimeout(function() {
+        CommandManager.execute(Commands.FILE_SAVE, {doc: doc})
+          .always(function() {
+            delete doc.__saving;
+          });
+      });
+    });
   }
 });
-

@@ -21,28 +21,24 @@ define(function (require) {
       pattern = /[ \t]+$/g;
       match = pattern.exec(line);
       if (match) {
-        doc.replaceRange(
-          '', {
+        doc.replaceRange('', {
             line: lineIndex,
             ch: match.index
           }, {
             line: lineIndex,
             ch: pattern.lastIndex
-          }
-        );
+          });
       }
 
       match = wsPattern.exec(line);
       if (match.replaceWith) {
-        doc.replaceRange(
-          match.replaceWith, {
+        doc.replaceRange(match.replaceWith, {
             line: lineIndex,
             ch: match.start
           }, {
             line: lineIndex,
             ch: match.end
-          }
-        );
+          });
       }
 
       lineIndex += 1;
@@ -50,13 +46,12 @@ define(function (require) {
 
     //ensure newline at the end of file
     line = doc.getLine(lineIndex - 1);
-    if (line !== undefined && line.length > 0 && line.slice(-1) !== '\n') {
-      doc.replaceRange(
-        '\n', {
-          line: lineIndex,
-          ch: line.slice(-1)
-        }
-      );
+    var lastN = line.slice(-1);
+    if (line !== undefined && line.length > 0 && lastN !== '\n') {
+      doc.replaceRange('\n', {
+        line: lineIndex,
+        ch: lastN
+      });
     }
   }
 
