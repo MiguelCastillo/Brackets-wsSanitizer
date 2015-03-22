@@ -34,7 +34,7 @@ define(function (require /*, exports, module*/) {
     var enabled = !command.getChecked();
     command.setChecked(enabled);
     prefs.set('enabled', enabled);
-    $(DocumentManager)[enabled ? 'on' : 'off']('documentSaved', runSanitizer);
+    DocumentManager[enabled ? 'on' : 'off']('documentSaved', runSanitizer);
   }
 
   function runSanitizer(evt, doc) {
