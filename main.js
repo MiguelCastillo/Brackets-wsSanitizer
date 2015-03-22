@@ -20,31 +20,37 @@ define(function (require /*, exports, module*/) {
 
   var COMMAND_ID = PREFERENCES_KEY;
   var menu       = Menus.getMenu(Menus.AppMenuBar.EDIT_MENU);
-  var command    = CommandManager.register('Whitespace Sanitizer', COMMAND_ID, setEnabled);
+  var command    = CommandManager.register('Whitespace Sanitizer', COMMAND_ID, cmdToggleEnabled);
 
   menu.addMenuDivider();
   menu.addMenuItem(COMMAND_ID);
 
-  // Set default value
-  prefs.definePreference("enabled", "boolean", "true");
-  command.setChecked(!prefs.get('enabled'));
-  setEnabled();
+  // Wire up preferences system
+  prefs.definePreference("enabled", "boolean", "true").on("change", checkEnabled);
+  command.setChecked(prefs.get('enabled'));
+  checkEnabled();
 
-  function setEnabled() {
-    var enabled = !command.getChecked();
+  function cmdToggleEnabled() {
+    prefs.set('enabled', !command.getChecked());
+  }
+
+  function checkEnabled() {
+    var enabled = prefs.get('enabled');
     command.setChecked(enabled);
-    prefs.set('enabled', enabled);
     DocumentManager[enabled ? 'on' : 'off']('documentSaved', runSanitizer);
   }
 
   function runSanitizer(evt, doc) {
-    doc.batchOperation(function () {
-      sanitize(doc);
+    if (prefs.get('enabled')) {
+      doc.batchOperation(function () {
+        sanitize(doc);
 
-      // We must publish the FILE_SAVE event in the same cycle as sanitization
-      // completes to avoid incorrectly saving the document before it is sanitized,
-      // which throws Brackets into an infinite saving loop.
-      CommandManager.execute(Commands.FILE_SAVE, {doc: doc});
-    });
+        // We must publish the FILE_SAVE event in the same cycle as sanitization
+        // completes to avoid incorrectly saving the document before it is sanitized,
+        // which throws Brackets into an infinite saving loop.
+        CommandManager.execute(Commands.FILE_SAVE, {doc: doc});
+      });
+    }
   }
 });
+
