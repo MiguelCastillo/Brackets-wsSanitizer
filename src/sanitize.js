@@ -2,19 +2,19 @@ define(function (require) {
   'use strict';
 
   var PreferencesManager = brackets.getModule('preferences/PreferencesManager');
-  var SPACE_UNITS = "spaceUnits";
-  var TAB_SIZE = "tabSize";
-  var USE_TAB_CHAR = "useTabChar";
-  var getReplacePattern = require('./replacePatterns');
+  var SPACE_UNITS        = "spaceUnits";
+  var TAB_SIZE           = "tabSize";
+  var USE_TAB_CHAR       = "useTabChar";
+  var getReplacePattern  = require('./replacePatterns');
 
   function sanitize(doc) {
     var line, pattern, match;
-    var lineIndex = 0;
+    var lineIndex          = 0;
     var preferencesContext = doc.file.fullPath;
-    var useTabChar = PreferencesManager.get(USE_TAB_CHAR, preferencesContext);
-    var tabSize = PreferencesManager.get(TAB_SIZE, preferencesContext);
-    var spaceUnit = PreferencesManager.get(SPACE_UNITS, preferencesContext);
-    var wsPattern = getReplacePattern(useTabChar, useTabChar ? tabSize : spaceUnit);
+    var useTabChar         = PreferencesManager.get(USE_TAB_CHAR, preferencesContext);
+    var tabSize            = PreferencesManager.get(TAB_SIZE, preferencesContext);
+    var spaceUnit          = PreferencesManager.get(SPACE_UNITS, preferencesContext);
+    var wsPattern          = getReplacePattern(useTabChar, useTabChar ? tabSize : spaceUnit);
 
     while ((line = doc.getLine(lineIndex)) !== undefined) {
       //trim trailing whitespaces
