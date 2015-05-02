@@ -10,18 +10,29 @@ wsSanitizer goes really well with https://github.com/DennisKehrig/brackets-show-
 * Uses Brackets preferences for tabs and spaces, including configured units (2 spaces, 4 spaces, etc.)
 * Gracefully handles mixed tabs and spaces
 * Sanitize on file save
+* Sanitize on file open
+
+
+## Options
+
+* `brackets-wsSanitizer.enabled` [true] - Setting to enable/disable sanitizing documents on save.
+* `brackets-wsSanitizer.onopen` [false] - Setting to enable/disable sanitizing documents on open.
+
 
 ## Brackets Preferences
 
 wsSanitizer leverages Brackets preferences, which means that you can specify per project settings by defining a `.brackets.json` in the root directory of your project. With Brackets preferences you can even define per file settings, which is really handy when dealing with third party libraries that may have different white space requirements than the rest of your project.
 
-The sample `.brackets.json` below enables wsSanitizer for every file, with indentation of 2 white spaces. The configuration file also defines a `path` that disables wsSanitizer for `sanitize.js`, uses tabs, and each tab is 4 spaces.
+The sample `.brackets.json` below enables wsSanitizer for every file, with indentation of 2 white spaces. The configuration file also defines a `path` that disables wsSanitizer for `sanitize.js`, uses tabs, and each tab is 4 spaces.  Furthermore, documents will be sanitized when they are first opened.
+
+> Brackets `per file settings` cannot be configured at a globally; they can only be configured at a project level. Please read [this issue](https://github.com/MiguelCastillo/Brackets-wsSanitizer/issues/10) for details.
 
 ```
 {
     "spaceUnits": 2,
     "useTabChar": false,
     "brackets-wsSanitizer.enabled": true,
+    "brackets-wsSanitizer.onopen": true,
     "path": {
         "Brackets-wsSanitizer/src/sanitize.js": {
             "useTabChar": true,
