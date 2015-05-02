@@ -53,6 +53,7 @@ define(function (require) {
   }
 
   function runSanitizer(evt, doc) {
+    console.log("====> Skip save", doc.__saving);
     if (doc.__saving) {
       return;
     }
@@ -60,7 +61,11 @@ define(function (require) {
     doc.__saving = true;
     doc.batchOperation(function () {
       var settings = getPreferences(doc);
+      var oldText = doc.getText();
       sanitize(doc, settings.useTabChar, settings.size);
+      var newText = doc.getText();
+
+      console.log("====> Trigger save", oldText === newText, doc.__saving);
 
       setTimeout(function() {
         CommandManager.execute(Commands.FILE_SAVE, {doc: doc})
