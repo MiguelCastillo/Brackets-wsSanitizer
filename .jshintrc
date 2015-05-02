@@ -12,6 +12,7 @@
     "window": true,
     "_": true,
     "brackets": true,
-    "CodeMirror": true
+    "CodeMirror": true,
+    "setTimeout": true
   }
 }

@@ -1,20 +1,12 @@
 define(function (require) {
   'use strict';
 
-  var PreferencesManager = brackets.getModule('preferences/PreferencesManager');
-  var SPACE_UNITS        = "spaceUnits";
-  var TAB_SIZE           = "tabSize";
-  var USE_TAB_CHAR       = "useTabChar";
-  var getReplacePattern  = require('./replacePatterns');
+  var getReplacePattern = require('./replacePatterns');
 
-  function sanitize(doc) {
+  function sanitize(doc, useTab, units) {
     var line, pattern, match;
-    var lineIndex          = 0;
-    var preferencesContext = doc.file.fullPath;
-    var useTabChar         = PreferencesManager.get(USE_TAB_CHAR, preferencesContext);
-    var tabSize            = PreferencesManager.get(TAB_SIZE, preferencesContext);
-    var spaceUnit          = PreferencesManager.get(SPACE_UNITS, preferencesContext);
-    var wsPattern          = getReplacePattern(useTabChar, useTabChar ? tabSize : spaceUnit);
+    var lineIndex = 0;
+    var wsPattern = getReplacePattern(useTab, units);
 
     while ((line = doc.getLine(lineIndex)) !== undefined) {
       //trim trailing whitespaces
@@ -41,7 +33,7 @@ define(function (require) {
           });
       }
 
-      lineIndex += 1;
+      lineIndex++;
     }
 
     //ensure newline at the end of file
@@ -54,6 +46,32 @@ define(function (require) {
       });
     }
   }
+
+
+  sanitize.verify = function(doc, useTab, units) {
+    var line, pattern;
+    var lineIndex = 0;
+    var wsPattern = getReplacePattern(useTab, units);
+
+    while ((line = doc.getLine(lineIndex)) !== undefined) {
+      pattern = /[ \t]+$/g;
+
+      if ((!!pattern.exec(line)) || (!!wsPattern.exec(line).replaceWith)) {
+        return false;
+      }
+
+      lineIndex++;
+    }
+
+    //ensure newline at the end of file
+    line = doc.getLine(lineIndex - 1);
+    var lastN = line.slice(-1);
+    if (line !== undefined && line.length > 0 && lastN !== '\n') {
+      return false;
+    }
+
+    return true;
+  };
 
   return sanitize;
 });
