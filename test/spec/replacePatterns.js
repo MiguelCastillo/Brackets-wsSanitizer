@@ -13,7 +13,7 @@ describe("Pattern Suites", function() {
       beforeEach(function() {
         result = pattern.getIndentation(2, 1);
       });
-      
+
       it("then result is 2 tabs", function() {
         expect(result).to.equal('\t\t');
       });
@@ -24,7 +24,7 @@ describe("Pattern Suites", function() {
       beforeEach(function() {
         result = pattern.getIndentation(3, 1);
       });
-      
+
       it("then result is 2 tabs and 1 space", function() {
         expect(result).to.equal('\t\t ');
       });
@@ -35,7 +35,7 @@ describe("Pattern Suites", function() {
       beforeEach(function() {
         result = pattern.getIndentation(4, 1);
       });
-      
+
       it("then result is 3 tabs", function() {
         expect(result).to.equal('\t\t\t');
       });
@@ -46,7 +46,7 @@ describe("Pattern Suites", function() {
       beforeEach(function() {
         result = pattern.getIndentation(5, 1);
       });
-      
+
       it("then result is 3 tabs and 1 space", function() {
         expect(result).to.equal('\t\t\t ');
       });
@@ -64,7 +64,7 @@ describe("Pattern Suites", function() {
       beforeEach(function() {
         result = pattern.getIndentation(2, 1);
       });
-      
+
       it("then result is 1 tab and 2 spaces", function() {
         expect(result).to.equal('\t  ');
       });
@@ -75,7 +75,7 @@ describe("Pattern Suites", function() {
       beforeEach(function() {
         result = pattern.getIndentation(3, 1);
       });
-      
+
       it("then result is 1 tab and 3 spaces", function() {
         expect(result).to.equal('\t   ');
       });
@@ -86,7 +86,7 @@ describe("Pattern Suites", function() {
       beforeEach(function() {
         result = pattern.getIndentation(5, 1);
       });
-      
+
       it("then result is 2 tab and 1 spaces", function() {
         expect(result).to.equal('\t\t ');
       });
