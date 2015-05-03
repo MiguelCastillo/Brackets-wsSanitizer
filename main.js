@@ -52,27 +52,37 @@ define(function (require) {
     }
   }
 
+
+  var currentTime;
   function runSanitizer(evt, doc) {
-    console.log("====> Skip save", doc.__saving);
+    var rnd = Math.floor(Math.random() * 1000);
+    console.log("1. ====> Skip save", rnd, doc.__saving);
     if (doc.__saving) {
+      console.log("1.5 =====> Returning early...", rnd);
       return;
     }
-
+    console.log("2. =====> Still running", rnd, doc.__saving);
     doc.__saving = true;
+    console.log("3. =====> Saving now set to ", rnd, doc.__saving);
     doc.batchOperation(function () {
-      var settings = getPreferences(doc);
+      console.log("4. =====> Saving in batch set to ", rnd, doc.__saving);
       var oldText = doc.getText();
-      sanitize(doc, settings.useTabChar, settings.size);
+      sanitize(doc);
       var newText = doc.getText();
+      console.log("5. ====> Trigger save", rnd, oldText === newText, doc.__saving);
 
-      console.log("====> Trigger save", oldText === newText, doc.__saving);
-
+      currentTime = (new Date()).getTime();
+      console.log("6. ====> Setting timeout", rnd);
       setTimeout(function() {
+        console.log("7. ====> Timeout triggered", rnd, (new Date()).getTime() - currentTime);
         CommandManager.execute(Commands.FILE_SAVE, {doc: doc})
           .always(function() {
-            delete doc.__saving;
+            setTimeout(function() {
+              console.log("8. =====> Deleting 'saving' flag", rnd);
+              delete doc.__saving;
+            });
           });
-      });
+      }, 2000);
     });
   }
 
