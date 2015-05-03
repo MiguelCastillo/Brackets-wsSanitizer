@@ -104,6 +104,6 @@ define(function (require) {
 
   AppInit.appReady(function() {
     EditorManager.on("activeEditorChange.wsSanitizer", setDocument);
-    setDocument(null, EditorManager.getActiveEditor());
+    setDocument(null, EditorManager.getCurrentFullEditor());
   });
 });
