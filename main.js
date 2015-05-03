@@ -24,7 +24,6 @@ define(function (require) {
   var TAB_SIZE           = "tabSize";
   var USE_TAB_CHAR       = "useTabChar";
 
-
   var COMMAND_ID = PREFERENCES_KEY;
   var menu       = Menus.getMenu(Menus.AppMenuBar.EDIT_MENU);
   var command    = CommandManager.register('Whitespace Sanitizer', COMMAND_ID, cmdToggleEnabled);
@@ -38,9 +37,11 @@ define(function (require) {
   command.setChecked(prefs.get('enabled'));
   checkEnabled();
 
+
   function cmdToggleEnabled() {
     prefs.set('enabled', !command.getChecked());
   }
+
 
   var lastEnabled;
   function checkEnabled() {
@@ -52,22 +53,27 @@ define(function (require) {
     }
   }
 
+
   function runSanitizer(evt, doc) {
     if (doc.__saving) {
       return;
     }
 
     doc.__saving = true;
-    doc.batchOperation(function () {
+    doc.batchOperation(function() {
       var settings = getPreferences(doc);
+      var oldText = doc.getText();
       sanitize(doc, settings.useTabChar, settings.size);
+      var newText = doc.getText();
 
-      setTimeout(function() {
-        CommandManager.execute(Commands.FILE_SAVE, {doc: doc})
-          .always(function() {
-            delete doc.__saving;
-          });
-      });
+      if (oldText !== newText) {
+        setTimeout(function() {
+          CommandManager.execute(Commands.FILE_SAVE, {doc: doc})
+            .always(function() {
+                delete doc.__saving;
+              });
+        });
+      }
     });
   }
 
@@ -75,7 +81,7 @@ define(function (require) {
   function setDocument(evt, editor) {
     if (editor && prefs.get("onopen") === true) {
       var doc = editor.document;
-      doc.batchOperation(function () {
+      doc.batchOperation(function() {
         var settings = getPreferences(doc);
         sanitize(doc, settings.useTabChar, settings.size);
       });
@@ -88,6 +94,7 @@ define(function (require) {
     var useTabChar         = PreferencesManager.get(USE_TAB_CHAR, preferencesContext);
     var tabSize            = PreferencesManager.get(TAB_SIZE, preferencesContext);
     var spaceUnit          = PreferencesManager.get(SPACE_UNITS, preferencesContext);
+
     return {
       useTabChar: useTabChar,
       size: useTabChar ? tabSize : spaceUnit
