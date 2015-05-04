@@ -14,9 +14,11 @@ define(function (require) {
   var Commands           = brackets.getModule('command/Commands');
   var CommandManager     = brackets.getModule('command/CommandManager');
   var DocumentManager    = brackets.getModule('document/DocumentManager');
+  var ModalBar           = brackets.getModule("widgets/ModalBar").ModalBar;
   var Menus              = brackets.getModule('command/Menus');
   var PreferencesManager = brackets.getModule('preferences/PreferencesManager');
   var sanitize           = require('src/sanitize');
+  var notificationTmpl   = require('text!html/notification.html');
   var PREFERENCES_KEY    = 'brackets-wsSanitizer';
   var prefs              = PreferencesManager.getExtensionPrefs(PREFERENCES_KEY);
 
@@ -49,12 +51,12 @@ define(function (require) {
     if (enabled !== lastEnabled) {
       lastEnabled = enabled;
       command.setChecked(enabled);
-      DocumentManager[enabled ? 'on' : 'off']('documentSaved', runSanitizer);
+      DocumentManager[enabled ? 'on' : 'off']('documentSaved', handleDocumentSave);
     }
   }
 
 
-  function runSanitizer(evt, doc) {
+  function handleDocumentSave(evt, doc) {
     if (doc.__saving) {
       return;
     }
@@ -62,30 +64,52 @@ define(function (require) {
     doc.__saving = true;
     doc.batchOperation(function() {
       var settings = getPreferences(doc);
-      var oldText = doc.getText();
-      sanitize(doc, settings.useTabChar, settings.size);
-      var newText = doc.getText();
 
-      if (oldText !== newText) {
+      if (sanitize(doc, settings.useTabChar, settings.size)) {
         setTimeout(function() {
           CommandManager.execute(Commands.FILE_SAVE, {doc: doc})
             .always(function() {
-                delete doc.__saving;
-              });
+              delete doc.__saving;
+            });
         });
+      }
+      else {
+        delete doc.__saving;
       }
     });
   }
 
 
-  function setDocument(evt, editor) {
-    if (editor && prefs.get("onopen") === true) {
-      var doc = editor.document;
-      doc.batchOperation(function() {
-        var settings = getPreferences(doc);
-        sanitize(doc, settings.useTabChar, settings.size);
-      });
+  function handleDocumentOpen(evt, editor) {
+    if (!editor || prefs.get("onopen") !== true) {
+      return;
     }
+
+    var doc = editor.document;
+    var settings = getPreferences(doc);
+
+    if (sanitize.verify(doc, settings.useTabChar, settings.size)) {
+      return;
+    }
+
+    setTimeout(function() {
+      var modalBar = new ModalBar(notificationTmpl, true);
+
+      modalBar.getRoot()
+        .on('click', '#yes-sanitize', function() {
+          modalBar.close();
+          doc.batchOperation(function() {
+            sanitize(doc, settings.useTabChar, settings.size);
+          });
+        })
+        .on('click', '#no-sanitize', function() {
+          modalBar.close();
+        })
+        .on('click', '#disable-sanitize', function() {
+          modalBar.close();
+          prefs.set("onopen", false);
+        });
+    });
   }
 
 
@@ -103,7 +127,7 @@ define(function (require) {
 
 
   AppInit.appReady(function() {
-    EditorManager.on("activeEditorChange.wsSanitizer", setDocument);
-    setDocument(null, EditorManager.getCurrentFullEditor());
+    EditorManager.on("activeEditorChange.wsSanitizer", handleDocumentOpen);
+    handleDocumentOpen(null, EditorManager.getCurrentFullEditor());
   });
 });

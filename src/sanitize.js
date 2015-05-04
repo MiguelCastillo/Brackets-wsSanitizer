@@ -8,6 +8,7 @@ define(function (require) {
     var line, pattern, match;
     var lineIndex = 0;
     var wsPattern = getReplacePattern(useTab, units);
+    var hasChanged = 0;
 
     while ((line = doc.getLine(lineIndex)) !== undefined) {
       //trim trailing whitespaces
@@ -21,6 +22,8 @@ define(function (require) {
             line: lineIndex,
             ch: pattern.lastIndex
           });
+
+        hasChanged++;
       }
 
       match = wsPattern.exec(line);
@@ -32,6 +35,8 @@ define(function (require) {
             line: lineIndex,
             ch: match.end
           });
+
+        hasChanged++;
       }
 
       lineIndex++;
@@ -45,8 +50,35 @@ define(function (require) {
         line: lineIndex,
         ch: lastN
       });
+
+      hasChanged++;
     }
+
+    return !!hasChanged;
   }
+
+
+  sanitize.verify = function(doc, useTab, units) {
+    var line;
+    var lineIndex = 0;
+    var wsPattern = getReplacePattern(useTab, units);
+
+    while ((line = doc.getLine(lineIndex)) !== undefined) {
+      if (/[ \t]+$/g.exec(line) || wsPattern.exec(line).replaceWith) {
+        return false;
+      }
+
+      lineIndex++;
+    }
+
+    line = doc.getLine(lineIndex - 1);
+    var lastN = line.slice(-1);
+    if (line !== undefined && line.length > 0 && lastN !== '\n') {
+      return false;
+    }
+
+    return true;
+  };
 
 
   return sanitize;
