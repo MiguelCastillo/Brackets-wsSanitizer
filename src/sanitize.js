@@ -8,6 +8,7 @@ define(function (require) {
     var line, pattern, match;
     var lineIndex = 0;
     var wsPattern = getReplacePattern(useTab, units);
+    var hasChanged = 0;
 
     while ((line = doc.getLine(lineIndex)) !== undefined) {
       //trim trailing whitespaces
@@ -21,6 +22,8 @@ define(function (require) {
             line: lineIndex,
             ch: pattern.lastIndex
           });
+
+        hasChanged++;
       }
 
       match = wsPattern.exec(line);
@@ -32,6 +35,8 @@ define(function (require) {
             line: lineIndex,
             ch: match.end
           });
+
+        hasChanged++;
       }
 
       lineIndex++;
@@ -45,7 +50,11 @@ define(function (require) {
         line: lineIndex,
         ch: lastN
       });
+
+      hasChanged++;
     }
+
+    return !!hasChanged;
   }
 
 

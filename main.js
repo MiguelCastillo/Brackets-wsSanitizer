@@ -51,12 +51,12 @@ define(function (require) {
     if (enabled !== lastEnabled) {
       lastEnabled = enabled;
       command.setChecked(enabled);
-      DocumentManager[enabled ? 'on' : 'off']('documentSaved', runSanitizer);
+      DocumentManager[enabled ? 'on' : 'off']('documentSaved', handleDocumentSave);
     }
   }
 
 
-  function runSanitizer(evt, doc) {
+  function handleDocumentSave(evt, doc) {
     if (doc.__saving) {
       return;
     }
@@ -64,23 +64,23 @@ define(function (require) {
     doc.__saving = true;
     doc.batchOperation(function() {
       var settings = getPreferences(doc);
-      var oldText = doc.getText();
-      sanitize(doc, settings.useTabChar, settings.size);
-      var newText = doc.getText();
 
-      if (oldText !== newText) {
+      if (sanitize(doc, settings.useTabChar, settings.size)) {
         setTimeout(function() {
           CommandManager.execute(Commands.FILE_SAVE, {doc: doc})
             .always(function() {
-                delete doc.__saving;
-              });
+              delete doc.__saving;
+            });
         });
+      }
+      else {
+        delete doc.__saving;
       }
     });
   }
 
 
-  function setDocument(evt, editor) {
+  function handleDocumentOpen(evt, editor) {
     if (!editor || prefs.get("onopen") !== true) {
       return;
     }
@@ -127,7 +127,7 @@ define(function (require) {
 
 
   AppInit.appReady(function() {
-    EditorManager.on("activeEditorChange.wsSanitizer", setDocument);
-    setDocument(null, EditorManager.getCurrentFullEditor());
+    EditorManager.on("activeEditorChange.wsSanitizer", handleDocumentOpen);
+    handleDocumentOpen(null, EditorManager.getCurrentFullEditor());
   });
 });
