@@ -61,6 +61,7 @@ define(function (require) {
       return;
     }
 
+    doc.addRef();
     doc.__saving = true;
     doc.batchOperation(function() {
       var settings = getPreferences(doc);
@@ -70,11 +71,13 @@ define(function (require) {
           CommandManager.execute(Commands.FILE_SAVE, {doc: doc})
             .always(function() {
               delete doc.__saving;
+              doc.releaseRef();
             });
         });
       }
       else {
         delete doc.__saving;
+        doc.releaseRef();
       }
     });
   }
