@@ -83,6 +83,7 @@ define(function (require) {
   }
 
 
+  var modalBar;
   function handleDocumentOpen(evt, editor) {
     if (!editor || prefs.get("onopen") !== true) {
       return;
@@ -92,12 +93,18 @@ define(function (require) {
     var settings = getPreferences(doc);
 
     if (sanitize.verify(doc, settings.useTabChar, settings.size)) {
+      if (modalBar) {
+        modalBar.close();
+      }
       return;
     }
 
     setTimeout(function() {
-      var modalBar = new ModalBar(notificationTmpl, true);
+      if (modalBar) {
+        modalBar.close();
+      }
 
+      modalBar = new ModalBar(notificationTmpl, false);
       modalBar.getRoot()
         .on('click', '#yes-sanitize', function() {
           modalBar.close();
