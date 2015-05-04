@@ -14,9 +14,11 @@ define(function (require) {
   var Commands           = brackets.getModule('command/Commands');
   var CommandManager     = brackets.getModule('command/CommandManager');
   var DocumentManager    = brackets.getModule('document/DocumentManager');
+  var ModalBar           = brackets.getModule("widgets/ModalBar").ModalBar;
   var Menus              = brackets.getModule('command/Menus');
   var PreferencesManager = brackets.getModule('preferences/PreferencesManager');
   var sanitize           = require('src/sanitize');
+  var notificationTmpl   = require('text!html/notification.html');
   var PREFERENCES_KEY    = 'brackets-wsSanitizer';
   var prefs              = PreferencesManager.getExtensionPrefs(PREFERENCES_KEY);
 
@@ -79,13 +81,35 @@ define(function (require) {
 
 
   function setDocument(evt, editor) {
-    if (editor && prefs.get("onopen") === true) {
-      var doc = editor.document;
-      doc.batchOperation(function() {
-        var settings = getPreferences(doc);
-        sanitize(doc, settings.useTabChar, settings.size);
-      });
+    if (!editor || prefs.get("onopen") !== true) {
+      return;
     }
+
+    var doc = editor.document;
+    var settings = getPreferences(doc);
+
+    if (sanitize.verify(doc, settings.useTabChar, settings.size)) {
+      return;
+    }
+
+    setTimeout(function() {
+      var modalBar = new ModalBar(notificationTmpl, true);
+
+      modalBar.getRoot()
+        .on('click', '#yes-sanitize', function() {
+          modalBar.close();
+          doc.batchOperation(function() {
+            sanitize(doc, settings.useTabChar, settings.size);
+          });
+        })
+        .on('click', '#no-sanitize', function() {
+          modalBar.close();
+        })
+        .on('click', '#disable-sanitize', function() {
+          modalBar.close();
+          prefs.set("onopen", false);
+        });
+    });
   }
 
 
