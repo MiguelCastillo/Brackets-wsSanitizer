@@ -28,7 +28,7 @@ wsSanitizer also support per language settings, which enables you to enable/disa
 
 The sample `.brackets.json` below enables wsSanitizer for every file, with indentation of 2 white spaces. The configuration file also defines a `path` that disables wsSanitizer for `sanitize.js`, uses tabs, and each tab is 4 spaces.  Furthermore, you will be asked if you want to sanitize your documents when you open them.
 
-> Brackets `per file settings` cannot be configured at globally as a user preference; they can only be configured at a project level as a project preference. Please read [this issue](https://github.com/MiguelCastillo/Brackets-wsSanitizer/issues/10) for details.
+> Brackets `per file settings` cannot be configured as a user preference (globally); they can only be configured at the project level (project preference). Please read [this issue](https://github.com/MiguelCastillo/Brackets-wsSanitizer/issues/10) for details.
 
 
 #### `.brackets.json` with path settings
