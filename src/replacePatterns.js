@@ -67,9 +67,14 @@ define(function () {
 
     var start = 0;
     var end   = wsCount + tabCount;
+    var replaceWith = pattern.getIndentation(wsCount, tabCount);
+
+    if (end && replaceWith && line.substring(0, end) === replaceWith) {
+      replaceWith = false;
+    }
 
     return {
-      replaceWith: pattern.getIndentation(wsCount, tabCount),
+      replaceWith: replaceWith,
       start: start,
       end: end
     };
