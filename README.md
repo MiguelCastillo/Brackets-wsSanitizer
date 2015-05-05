@@ -16,17 +16,21 @@ wsSanitizer goes really well with https://github.com/DennisKehrig/brackets-show-
 ## Options
 
 * `brackets-wsSanitizer.enabled` [true] - Setting to enable/disable sanitizing documents on save.
-* `brackets-wsSanitizer.onopen` [false] - Setting to enable/disable sanitizing documents on open.
+* `brackets-wsSanitizer.onopen` [true] - Setting to enable/disable sanitizing documents on open.
 
 
 ## Brackets Preferences
 
 wsSanitizer leverages Brackets preferences, which means that you can specify per project settings by defining a `.brackets.json` in the root directory of your project. With Brackets preferences you can even define per file settings, which is really handy when dealing with third party libraries that may have different white space requirements than the rest of your project.
 
-The sample `.brackets.json` below enables wsSanitizer for every file, with indentation of 2 white spaces. The configuration file also defines a `path` that disables wsSanitizer for `sanitize.js`, uses tabs, and each tab is 4 spaces.  Furthermore, documents will be sanitized when they are first opened.
+wsSanitizer also support per language settings, which enables you to enable/disabled sanitizing your documents using the Brackets language layer. For more information on the preferences system, you can read up on [this link](https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences).
 
-> Brackets `per file settings` cannot be configured at a globally; they can only be configured at a project level. Please read [this issue](https://github.com/MiguelCastillo/Brackets-wsSanitizer/issues/10) for details.
+The sample `.brackets.json` below enables wsSanitizer for every file, with indentation of 2 white spaces. The configuration file also defines a `path` that disables wsSanitizer for `sanitize.js`, uses tabs, and each tab is 4 spaces.  Furthermore, you will be asked if you want to sanitize your documents when you open them.
 
+> Brackets `per file settings` cannot be configured at globally as a user preference; they can only be configured at a project level as a project preference. Please read [this issue](https://github.com/MiguelCastillo/Brackets-wsSanitizer/issues/10) for details.
+
+
+#### `.brackets.json` with path settings
 ```
 {
     "spaceUnits": 2,
@@ -38,6 +42,28 @@ The sample `.brackets.json` below enables wsSanitizer for every file, with inden
             "useTabChar": true,
             "tabSize": 4,
             "brackets-wsSanitizer.enabled": false
+        }
+    }
+}
+```
+
+#### `.brackets.json` with language settings
+```
+{
+    "language": {
+        "javascript": {
+            "useTabChar": false,
+            "tabSize": 4,
+            "spaceUnits": 4,
+            "brackets-wsSanitizer.enabled": true,
+            "brackets-wsSanitizer.onopen": true
+        },
+        "json": {
+            "useTabChar": false,
+            "tabSize": 4,
+            "spaceUnits": 4,
+            "brackets-wsSanitizer.enabled": false,
+            "brackets-wsSanitizer.onopen": true
         }
     }
 }
