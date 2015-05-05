@@ -27,11 +27,16 @@ define(function (require) {
   var TAB_SIZE     = "tabSize";
   var USE_TAB_CHAR = "useTabChar";
 
+  var ENABLED      = PREFERENCES_KEY + "." + "enabled";
+  var NOTIFICATION = PREFERENCES_KEY + "." + "notification";
+  var NEWLINE      = PREFERENCES_KEY + "." + "newline";
+
 
   // Keeps track of current state information
   var lastUseTab;
   var lastEnabled;
-  var lastOnOpen;
+  var lastNotification;
+  var lastNewLine;
   var modalBar;
 
   var COMMAND_ID = PREFERENCES_KEY;
@@ -42,9 +47,10 @@ define(function (require) {
   menu.addMenuItem(COMMAND_ID);
 
 
-  // Wire up preferences system
-  prefs.definePreference("onopen",  "boolean", true);
+  // Add default preferences
+  prefs.definePreference("notification", "boolean", true);
   prefs.definePreference("enabled", "boolean", true);
+  prefs.definePreference("newline", "boolean", true);
   command.setChecked(getEnabledPreference());
 
 
@@ -58,12 +64,28 @@ define(function (require) {
       return;
     }
 
+    var enabled = getEnabledPreference();
+    if (!enabled) {
+      //
+      // If we are saving the document, but sanitizing it on save is not
+      // enabled we want to try to verify the document because:
+      // 1. The document may have been manually fixed.
+      // 2. The document may have been changed and made inconsistent.
+      //
+      verifyDocument();
+      return;
+    }
+
+    // Before sanitizing the document, let's close the modal bar...
+    // No need to show it if we are going to clean up the document
+    closeModalBar();
+
     doc.addRef();
     doc.__saving = true;
     doc.batchOperation(function() {
-      var settings = getTabPreferences(doc);
+      var settings = getSanitizePreferences(doc);
 
-      if (sanitize(doc, settings.useTab, settings.units)) {
+      if (sanitize(doc, settings)) {
         setTimeout(function() {
           CommandManager.execute(Commands.FILE_SAVE, {doc: doc})
             .always(function() {
@@ -80,17 +102,17 @@ define(function (require) {
   }
 
 
-  function handleDocumentOpen() {
+  function verifyDocument() {
     closeModalBar();
 
     var doc = getCurrentDocument();
-    var onopen = getOnOpenPreference();
-    if (!doc || !onopen) {
+    var notification = getNotificationPreference();
+    if (!doc || !notification) {
       return;
     }
 
-    var settings = getTabPreferences();
-    if (sanitize.verify(doc, settings.useTab, settings.units)) {
+    var settings = getSanitizePreferences();
+    if (sanitize.verify(doc, settings)) {
       return;
     }
 
@@ -99,7 +121,7 @@ define(function (require) {
       .on('click', '#yes-sanitize', function() {
         closeModalBar();
         doc.batchOperation(function() {
-          sanitize(doc, settings.useTab, settings.units);
+          sanitize(doc, settings);
         });
       })
       .on('click', '#no-sanitize', function() {
@@ -107,7 +129,7 @@ define(function (require) {
       })
       .on('click', '#disable-sanitize', function() {
         closeModalBar();
-        setOnOpenPreference(false);
+        setNotificationPreference(false);
       });
   }
 
@@ -127,43 +149,56 @@ define(function (require) {
 
 
   function getEnabledPreference() {
-    var doc     = getCurrentDocument();
-    var context = doc && _buildPreferencesContext(doc.file.fullPath);
-    return PreferencesManager.get("brackets-wsSanitizer.enabled", context);
+    return getPreference(ENABLED);
   }
 
 
   function setEnabledPreference(value) {
-    var doc     = getCurrentDocument();
-    var options = doc && {context: doc.file.fullPath};
-    return PreferencesManager.set("brackets-wsSanitizer.enabled", value, options);
+    return setPreference(ENABLED, value);
   }
 
 
-  function getOnOpenPreference() {
+  function getNotificationPreference() {
+    return getPreference(NOTIFICATION);
+  }
+
+
+  function setNotificationPreference(value) {
+    return setPreference(NOTIFICATION, value);
+  }
+
+
+  function getNewLinePreference() {
+    return getPreference(NEWLINE);
+  }
+
+
+  function getPreference(name) {
     var doc     = getCurrentDocument();
     var context = doc && _buildPreferencesContext(doc.file.fullPath);
-    return PreferencesManager.get("brackets-wsSanitizer.onopen", context);
+    return PreferencesManager.get(name, context);
   }
 
 
-  function setOnOpenPreference(value) {
+  function setPreference(name, value) {
     var doc     = getCurrentDocument();
     var options = doc && {context: doc.file.fullPath};
-    return PreferencesManager.set("brackets-wsSanitizer.onopen", value, options);
+    return PreferencesManager.set(name, value, options);
   }
 
 
-  function getTabPreferences() {
-    var doc       = getCurrentDocument();
-    var context   = doc && _buildPreferencesContext(doc.file.fullPath);
-    var useTab    = PreferencesManager.get(USE_TAB_CHAR, context);
-    var tabSize   = PreferencesManager.get(TAB_SIZE,     context);
-    var spaceUnit = PreferencesManager.get(SPACE_UNITS,  context);
+  function getSanitizePreferences() {
+    var doc        = getCurrentDocument();
+    var context    = doc && _buildPreferencesContext(doc.file.fullPath);
+    var useTab     = PreferencesManager.get(USE_TAB_CHAR, context);
+    var tabSize    = PreferencesManager.get(TAB_SIZE,     context);
+    var spaceUnit  = PreferencesManager.get(SPACE_UNITS,  context);
+    var addNewLine = PreferencesManager.get(NEWLINE,      context);
 
     return {
       useTab: useTab,
-      units: useTab ? tabSize : spaceUnit
+      units: useTab ? tabSize : spaceUnit,
+      addNewLine: addNewLine
     };
   }
 
@@ -174,41 +209,49 @@ define(function (require) {
   }
 
 
-  PreferencesManager.on('change', "brackets-wsSanitizer.enabled", function enabledChanged() {
+  PreferencesManager.on('change', ENABLED, function enabledChanged() {
     var enabled = getEnabledPreference();
 
     if (enabled !== lastEnabled) {
       lastEnabled = enabled;
       command.setChecked(enabled);
-      DocumentManager[enabled ? 'on' : 'off']('documentSaved', handleDocumentSave);
     }
   });
 
 
-  PreferencesManager.on('change', "brackets-wsSanitizer.onopen", function enabledChanged() {
-    var onopen = getOnOpenPreference();
+  PreferencesManager.on('change', NOTIFICATION, function enabledChanged() {
+    var notification = getNotificationPreference();
 
-    if (onopen !== lastOnOpen) {
-      lastOnOpen = onopen;
-      handleDocumentOpen();
+    if (notification !== lastNotification) {
+      lastNotification = notification;
+      verifyDocument();
+    }
+  });
+
+
+  PreferencesManager.on('change', NEWLINE, function newlineChanged() {
+    var newline = getNewLinePreference();
+
+    if (newline !== lastNewLine) {
+      lastNewLine = newline;
+      verifyDocument();
     }
   });
 
 
   PreferencesManager.on('change', USE_TAB_CHAR, function useTabsChcnaged() {
-    var doc     = getCurrentDocument();
-    var context = doc && _buildPreferencesContext(doc.file.fullPath);
-    var useTabs = PreferencesManager.get(USE_TAB_CHAR, context);
+    var useTabs = getPreference(USE_TAB_CHAR);
 
     if (useTabs !== lastUseTab) {
       lastUseTab = useTabs;
-      handleDocumentOpen();
+      verifyDocument();
     }
   });
 
 
   AppInit.appReady(function() {
-    EditorManager.on("activeEditorChange.wsSanitizer", handleDocumentOpen);
-    handleDocumentOpen();
+    DocumentManager.on("documentSaved", handleDocumentSave);
+    EditorManager.on("activeEditorChange.wsSanitizer", verifyDocument);
+    verifyDocument();
   });
 });
