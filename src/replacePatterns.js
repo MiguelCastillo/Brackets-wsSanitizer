@@ -76,8 +76,8 @@ define(function () {
   };
 
 
-  ReplacePattern.create = function (useTab, units) {
-    return new ReplacePattern(useTab, units);
+  ReplacePattern.create = function (settings) {
+    return new ReplacePattern(settings.useTab, settings.units);
   };
 
 

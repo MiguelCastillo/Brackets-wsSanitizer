@@ -4,10 +4,10 @@ define(function (require) {
   var getReplacePattern = require('./replacePatterns');
 
 
-  function sanitize(doc, useTab, units) {
+  function sanitize(doc, settings) {
     var line, pattern, match;
     var lineIndex = 0;
-    var wsPattern = getReplacePattern(useTab, units);
+    var wsPattern = getReplacePattern(settings);
     var hasChanged = 0;
 
     while ((line = doc.getLine(lineIndex)) !== undefined) {
@@ -43,25 +43,27 @@ define(function (require) {
     }
 
     //ensure newline at the end of file
-    line = doc.getLine(lineIndex - 1);
-    var lastN = line.slice(-1);
-    if (line !== undefined && line.length > 0 && lastN !== '\n') {
-      doc.replaceRange('\n', {
-        line: lineIndex,
-        ch: lastN
-      });
+    if (settings.addNewLine) {
+      line = doc.getLine(lineIndex - 1);
+      var lastN = line.slice(-1);
+      if (line !== undefined && line.length > 0 && lastN !== '\n') {
+        doc.replaceRange('\n', {
+          line: lineIndex,
+          ch: lastN
+        });
 
-      hasChanged++;
+        hasChanged++;
+      }
     }
 
     return !!hasChanged;
   }
 
 
-  sanitize.verify = function(doc, useTab, units) {
+  sanitize.verify = function(doc, settings) {
     var line;
     var lineIndex = 0;
-    var wsPattern = getReplacePattern(useTab, units);
+    var wsPattern = getReplacePattern(settings);
 
     while ((line = doc.getLine(lineIndex)) !== undefined) {
       if (/[ \t]+$/g.exec(line) || wsPattern.exec(line).replaceWith) {
@@ -71,10 +73,12 @@ define(function (require) {
       lineIndex++;
     }
 
-    line = doc.getLine(lineIndex - 1);
-    var lastN = line.slice(-1);
-    if (line !== undefined && line.length > 0 && lastN !== '\n') {
-      return false;
+    if (settings.addNewLine) {
+      line = doc.getLine(lineIndex - 1);
+      var lastN = line.slice(-1);
+      if (line !== undefined && line.length > 0 && lastN !== '\n') {
+        return false;
+      }
     }
 
     return true;

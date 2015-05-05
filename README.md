@@ -16,7 +16,8 @@ wsSanitizer goes really well with https://github.com/DennisKehrig/brackets-show-
 ## Options
 
 * `brackets-wsSanitizer.enabled` [true] - Setting to enable/disable sanitizing documents on save.
-* `brackets-wsSanitizer.onopen` [true] - Setting to enable/disable sanitizing documents on open.
+* `brackets-wsSanitizer.newline` [true] - Setting to enable/disable adding a new line at the end of the file.
+* `brackets-wsSanitizer.notification` [true] - Setting to enable/disable notifications when the current document has inconsistent tabs, spaces, or no new line at the end of the file.
 
 
 ## Brackets Preferences
@@ -36,7 +37,8 @@ The sample `.brackets.json` below enables wsSanitizer for every file, with inden
     "spaceUnits": 2,
     "useTabChar": false,
     "brackets-wsSanitizer.enabled": true,
-    "brackets-wsSanitizer.onopen": true,
+    "brackets-wsSanitizer.newline": true,
+    "brackets-wsSanitizer.notification": true,
     "path": {
         "Brackets-wsSanitizer/src/sanitize.js": {
             "useTabChar": true,
@@ -56,14 +58,15 @@ The sample `.brackets.json` below enables wsSanitizer for every file, with inden
             "tabSize": 4,
             "spaceUnits": 4,
             "brackets-wsSanitizer.enabled": true,
-            "brackets-wsSanitizer.onopen": true
+            "brackets-wsSanitizer.notification": true
         },
         "json": {
             "useTabChar": false,
             "tabSize": 4,
             "spaceUnits": 4,
             "brackets-wsSanitizer.enabled": false,
-            "brackets-wsSanitizer.onopen": true
+            "brackets-wsSanitizer.newline": false,
+            "brackets-wsSanitizer.notification": true
         }
     }
 }
@@ -75,7 +78,11 @@ For more information on Brackets preferences, please checkout
 ## How to...
 
 Enable/Disable:
-![enable/disable ss](https://raw.githubusercontent.com/MiguelCastillo/Brackets-wsSanitizer/master/screenshot.png)
+![enable/disable ss](https://raw.githubusercontent.com/MiguelCastillo/Brackets-wsSanitizer/master/img/screenshot.png)
+
+Notification:
+![enable/disable ss](https://raw.githubusercontent.com/MiguelCastillo/Brackets-wsSanitizer/master/img/notification.png)
+
 
 ## Credits
 
