@@ -2,7 +2,7 @@
 
 > Bring sanity to your code by keeping your indentation (spaces and tabs) consistent; the white space sanitizer.
 
-White Space Sanitizer goes well with [Show Whitesapce](https://github.com/DennisKehrig/brackets-show-whitespace).
+White Space Sanitizer goes well with [Show Whitespace](https://github.com/DennisKehrig/brackets-show-whitespace).
 
 ## Features
 * Trims trailing white spaces
