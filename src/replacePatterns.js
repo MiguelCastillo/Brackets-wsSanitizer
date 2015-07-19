@@ -2,8 +2,8 @@ define(function () {
   'use strict';
 
   var Characters = {
-    "SPACE": ' ',
-    "TAB": '\t'
+    SPACE: ' ',
+    TAB: '\t'
   };
 
 

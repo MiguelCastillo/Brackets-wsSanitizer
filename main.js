@@ -9,12 +9,12 @@
 define(function (require) {
   'use strict';
 
-  var AppInit            = brackets.getModule("utils/AppInit");
-  var EditorManager      = brackets.getModule("editor/EditorManager");
+  var AppInit            = brackets.getModule('utils/AppInit');
+  var EditorManager      = brackets.getModule('editor/EditorManager');
   var Commands           = brackets.getModule('command/Commands');
   var CommandManager     = brackets.getModule('command/CommandManager');
   var DocumentManager    = brackets.getModule('document/DocumentManager');
-  var ModalBar           = brackets.getModule("widgets/ModalBar").ModalBar;
+  var ModalBar           = brackets.getModule('widgets/ModalBar').ModalBar;
   var Menus              = brackets.getModule('command/Menus');
   var LanguageManager    = brackets.getModule('language/LanguageManager');
   var PreferencesManager = brackets.getModule('preferences/PreferencesManager');
@@ -23,13 +23,14 @@ define(function (require) {
   var PREFERENCES_KEY    = 'brackets-wsSanitizer';
   var prefs              = PreferencesManager.getExtensionPrefs(PREFERENCES_KEY);
 
-  var SPACE_UNITS  = "spaceUnits";
-  var TAB_SIZE     = "tabSize";
-  var USE_TAB_CHAR = "useTabChar";
+  var SPACE_UNITS  = 'spaceUnits';
+  var TAB_SIZE     = 'tabSize';
+  var USE_TAB_CHAR = 'useTabChar';
 
-  var ENABLED      = PREFERENCES_KEY + "." + "enabled";
-  var NOTIFICATION = PREFERENCES_KEY + "." + "notification";
-  var NEWLINE      = PREFERENCES_KEY + "." + "newline";
+  var AUTO_SAVE    = PREFERENCES_KEY + '.autosave';
+  var ENABLED      = PREFERENCES_KEY + '.enabled';
+  var NOTIFICATION = PREFERENCES_KEY + '.notification';
+  var NEWLINE      = PREFERENCES_KEY + '.newline';
 
 
   // Keeps track of current state information
@@ -37,6 +38,7 @@ define(function (require) {
   var lastEnabled;
   var lastNotification;
   var lastNewLine;
+  var lastAutosave;
   var modalBar;
 
   var COMMAND_ID = PREFERENCES_KEY;
@@ -48,93 +50,120 @@ define(function (require) {
 
 
   // Add default preferences
-  prefs.definePreference("notification", "boolean", true);
-  prefs.definePreference("enabled", "boolean", true);
-  prefs.definePreference("newline", "boolean", true);
+  prefs.definePreference('autosave', 'boolean', true);
+  prefs.definePreference('notification', 'boolean', true);
+  prefs.definePreference('enabled', 'boolean', true);
+  prefs.definePreference('newline', 'boolean', true);
   command.setChecked(getEnabledPreference());
 
 
   function cmdToggleEnabled() {
     setEnabledPreference(!command.getChecked());
+    showNotification();
   }
 
 
-  function handleDocumentSave(evt, doc) {
-    if (doc.__saving) {
+  function sanitizeDocument(doc) {
+    doc = doc || getCurrentDocument();
+
+    if (!getAutosavePreference()) {
+      showNotification(doc);
       return;
     }
 
-    var enabled = getEnabledPreference();
-    if (!enabled) {
-      //
-      // If we are saving the document, but sanitizing it on save is not
-      // enabled we want to try to verify the document because:
-      // 1. The document may have been manually fixed.
-      // 2. The document may have been changed and made inconsistent.
-      //
-      verifyDocument();
-      return;
+    // Close notification... We are just about to fix any inconsistencies
+    // anyways...
+    closeNotification();
+
+    if (!doc.__saving && !isDocumentConsistent(doc)) {
+      doc.__saving = true;
+      doc.addRef();
+      doc.batchOperation(function() {
+        if (sanitize(doc, getSanitizePreferences(doc))) {
+          setTimeout(function() {
+            CommandManager.execute(Commands.FILE_SAVE, {doc: doc})
+              .always(function() {
+                delete doc.__saving;
+                doc.releaseRef();
+              });
+          });
+        }
+        else {
+          delete doc.__saving;
+          doc.releaseRef();
+        }
+      });
     }
-
-    // Before sanitizing the document, let's close the modal bar...
-    // No need to show it if we are going to clean up the document
-    closeModalBar();
-
-    doc.addRef();
-    doc.__saving = true;
-    doc.batchOperation(function() {
-      var settings = getSanitizePreferences(doc);
-
-      if (sanitize(doc, settings)) {
-        setTimeout(function() {
-          CommandManager.execute(Commands.FILE_SAVE, {doc: doc})
-            .always(function() {
-              delete doc.__saving;
-              doc.releaseRef();
-            });
-        });
-      }
-      else {
-        delete doc.__saving;
-        doc.releaseRef();
-      }
-    });
   }
 
 
-  function verifyDocument() {
-    closeModalBar();
+  /**
+   * Method that checks if the document needs to be sanitized.
+   * A document can only be sanitized if sanitizer is enabled
+   * and there are white space inconsistencies in the document.
+   */
+  function isDocumentConsistent(doc) {
+    var settings;
+    var consistent = false;
 
-    var doc = getCurrentDocument();
-    var notification = getNotificationPreference();
-    if (!doc || !notification) {
-      return;
+    if (!getEnabledPreference()) {
+      return true;
     }
 
-    var settings = getSanitizePreferences();
-    if (sanitize.verify(doc, settings)) {
-      return;
+    doc = doc || getCurrentDocument();
+
+    if (doc) {
+      settings = getSanitizePreferences(doc);
+
+      doc.addRef();
+      consistent = sanitize.verify(doc, settings);
+      doc.releaseRef();
     }
 
+    return consistent;
+  }
+
+
+  function showNotification(doc) {
+    closeNotification();
+
+    doc = doc || getCurrentDocument();
+
+    if (isDocumentConsistent(doc)) {
+      return false;
+    }
+
+    if (!doc || !getNotificationPreference()) {
+      return false;
+    }
+
+    // Prompt to fix the document
     modalBar = new ModalBar(notificationTmpl, false);
     modalBar.getRoot()
       .on('click', '#yes-sanitize', function() {
-        closeModalBar();
+        var settings = getSanitizePreferences(doc);
+
+        closeNotification();
+
+        doc.addRef();
         doc.batchOperation(function() {
           sanitize(doc, settings);
+          doc.releaseRef();
         });
       })
       .on('click', '#no-sanitize', function() {
-        closeModalBar();
+        closeNotification();
       })
       .on('click', '#disable-sanitize', function() {
-        closeModalBar();
+        closeNotification();
         setNotificationPreference(false);
       });
+
+    return true;
   }
 
 
-  function closeModalBar() {
+  function closeNotification() {
     if (modalBar) {
       modalBar.close();
       modalBar = null;
@@ -168,6 +197,11 @@ define(function (require) {
   }
 
 
+  function getAutosavePreference() {
+    return getPreference(AUTO_SAVE);
+  }
+
+
   function getNewLinePreference() {
     return getPreference(NEWLINE);
   }
@@ -187,8 +221,8 @@ define(function (require) {
   }
 
 
-  function getSanitizePreferences() {
-    var doc        = getCurrentDocument();
+  function getSanitizePreferences(doc) {
+    doc = doc || getCurrentDocument();
     var context    = doc && _buildPreferencesContext(doc.file.fullPath);
     var useTab     = PreferencesManager.get(USE_TAB_CHAR, context);
     var tabSize    = PreferencesManager.get(TAB_SIZE,     context);
@@ -224,7 +258,7 @@ define(function (require) {
 
     if (notification !== lastNotification) {
       lastNotification = notification;
-      verifyDocument();
+      showNotification();
     }
   });
 
@@ -234,7 +268,16 @@ define(function (require) {
 
     if (newline !== lastNewLine) {
       lastNewLine = newline;
-      verifyDocument();
+      showNotification();
+    }
+  });
+
+
+  PreferencesManager.on('change', AUTO_SAVE, function autosaveChanged() {
+    var autosave = getAutosavePreference();
+
+    if (autosave !== lastAutosave) {
+      lastAutosave = autosave;
     }
   });
 
@@ -244,14 +287,22 @@ define(function (require) {
 
     if (useTabs !== lastUseTab) {
       lastUseTab = useTabs;
-      verifyDocument();
+      showNotification();
     }
   });
 
 
   AppInit.appReady(function() {
-    DocumentManager.on("documentSaved", handleDocumentSave);
-    EditorManager.on("activeEditorChange.wsSanitizer", verifyDocument);
-    verifyDocument();
+    DocumentManager.on('documentSaved', function(evt, doc) {
+      sanitizeDocument(doc);
+    });
+
+    EditorManager.on('activeEditorChange.wsSanitizer', function(evt, editor) {
+      if (editor) {
+        showNotification(editor.document);
+      }
+    });
+
+    showNotification();
   });
 });
