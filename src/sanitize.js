@@ -9,11 +9,14 @@ define(function (require) {
     var lineIndex = 0;
     var wsPattern = getReplacePattern(settings);
     var hasChanged = 0;
+    var emptyLine = false;
 
     while ((line = doc.getLine(lineIndex)) !== undefined) {
       //trim trailing whitespaces
       pattern = /[ \t]+$/g;
       match = pattern.exec(line);
+      emptyLine = false;
+
       if (match) {
         doc.replaceRange('', {
             line: lineIndex,
@@ -24,19 +27,22 @@ define(function (require) {
           });
 
         hasChanged++;
+        emptyLine = match[0].length === line.length;
       }
 
-      match = wsPattern.exec(line);
-      if (match.replaceWith) {
-        doc.replaceRange(match.replaceWith, {
-            line: lineIndex,
-            ch: match.start
-          }, {
-            line: lineIndex,
-            ch: match.end
-          });
+      if (!emptyLine) {
+        match = wsPattern.exec(line);
+        if (match.replaceWith) {
+          doc.replaceRange(match.replaceWith, {
+              line: lineIndex,
+              ch: match.start
+            }, {
+              line: lineIndex,
+              ch: match.end
+            });
 
-        hasChanged++;
+          hasChanged++;
+        }
       }
 
       lineIndex++;

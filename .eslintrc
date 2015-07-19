@@ -9,7 +9,7 @@
     "jsx": true
   },
   "rules": {
-    "semi": 2,
+    "semi": 1,
     "global-strict": 0,
     "quotes": [2, "single"],
     "key-spacing": 0,

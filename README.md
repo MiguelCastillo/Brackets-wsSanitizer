@@ -2,7 +2,7 @@
 
 > Bring sanity to your code by keeping your indentation (spaces and tabs) consistent; the white space sanitizer.
 
-White Space Sanitizer goes really well with https://github.com/DennisKehrig/brackets-show-whitespace.
+White Space Sanitizer goes well with [Show Whitesapce](https://github.com/DennisKehrig/brackets-show-whitespace).
 
 ## Features
 * Trims trailing white spaces
@@ -15,7 +15,8 @@ White Space Sanitizer goes really well with https://github.com/DennisKehrig/brac
 
 ## Options
 
-* `brackets-wsSanitizer.enabled` [true] - Setting to enable/disable sanitizing documents on save.
+* `brackets-wsSanitizer.autosave` [true] - Setting to automatically sanitize and save corrections *on document save*. If disabled, the conversion will need to be manually initiated via the notification bar.
+* `brackets-wsSanitizer.enabled` [true] - Setting to enable/disable sanitizing documents.
 * `brackets-wsSanitizer.newline` [true] - Setting to enable/disable adding a new line at the end of the file.
 * `brackets-wsSanitizer.notification` [true] - Setting to enable/disable notifications when the current document has inconsistent tabs, spaces, or no new line at the end of the file.
 
@@ -29,7 +30,6 @@ White Space Sanitizer also support per language settings, which enables you to e
 The sample `.brackets.json` below enables White Space Sanitizer for every file, with indentation of 2 white spaces. The configuration file also defines a `path` that disables White Space Sanitizer for `sanitize.js`, uses tabs, and each tab is 4 spaces.  Furthermore, you will be asked if you want to sanitize your documents when you open them.
 
 > Brackets `per file settings` cannot be configured as a user preference (globally); they can only be configured at the project level (project preference). Please read [this issue](https://github.com/MiguelCastillo/Brackets-wsSanitizer/issues/10) for details.
-
 
 #### `.brackets.json` with path settings
 ```
@@ -86,4 +86,4 @@ Notification:
 
 ## Credits
 
-Thanks to Dimitar Bonev for his work on https://github.com/dsbonev/whitespace-normalizer
+Thanks to Dimitar Bonev for his work on [whitespace normalizer](https://github.com/dsbonev/whitespace-normalizer)
